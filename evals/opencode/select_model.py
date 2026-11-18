@@ -30,6 +30,9 @@ catalog=run(["opencode","models"],90)
 available=set(catalog["stdout"].splitlines()) if catalog["exit"]==0 else set()
 # Only known free models. The live catalog is an availability filter, not proof of free pricing.
 candidates=[m for m in priority if m in available]
+# Append newly appearing free-suffixed Zen models after curated priorities.
+# Do not guess whether non-suffixed unknown models are free.
+candidates += sorted(m for m in available if m.startswith("opencode/") and m.endswith("-free") and m not in candidates)
 result={"status":"not_run","catalog_exit":catalog["exit"],"available_free_candidates":candidates,
         "ranking_basis":"editorial preference for coding, not a verified numerical benchmark",
         "attempts":[],"selected_model":None}
