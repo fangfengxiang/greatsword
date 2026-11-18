@@ -53,9 +53,22 @@ fetch('https://api.github.com/repos/fangfengxiang/greatsword/actions/workflows/q
 .then(d=>{const rows=(d.workflow_runs||[]).map(r=>'<tr><td><a href="/greatsword/reports/'+r.id+'/">'+r.id+'</a></td><td>'+r.head_sha.slice(0,8)+'</td><td>'+r.created_at.slice(0,16).replace('T',' ')+'</td><td>'+r.status+' / '+(r.conclusion||'pending')+'</td><td><a href="'+r.html_url+'">Actions</a></td></tr>').join('');document.getElementById('history').innerHTML='<table><thead><tr><th>Run</th><th>Commit</th><th>UTC</th><th>Workflow</th><th>GitHub</th></tr></thead><tbody>'+rows+'</tbody></table>'})
 .catch(e=>{document.getElementById('history').textContent='无法获取历史列表：'+e.message+'。可在 GitHub Actions 查看运行记录。'})
 </script>"""
+# A/B is published asynchronously on a separate branch. Fetch it at runtime with graceful fallback.
+ab_widget="""<section><h2>最新模型 A/B（异步）</h2><div id='latest-ab' class='panel'><p>正在读取最新 A/B 结果…</p></div><p class='muted'>A/B 与静态站发布解耦；缺失、失败或未评分不会影响站点访问。</p></section>
+<script>
+(function(){
+ const el=document.getElementById('latest-ab');
+ const fallback='尚无可用 A/B 结果。静态质量报告仍可独立查看。';
+ fetch('https://raw.githubusercontent.com/fangfengxiang/greatsword/ab-results/latest/ci-report.json',{cache:'no-store'})
+ .then(r=>{if(!r.ok)throw Error('unavailable');return r.json()})
+ .then(d=>{if(!d || typeof d.status!=='string')throw Error('invalid');const p=document.createElement('p');p.textContent='状态：'+d.status+' · 模型：'+(d.selected_model||'未选择')+' · 尝试：'+(Array.isArray(d.attempted_models)?d.attempted_models.length:0);el.replaceChildren(p);})
+ .catch(()=>{el.textContent=fallback;});
+})();
+</script>"""
+history=history.replace("</section><section><h2>历史运行</h2>","</section>"+ab_widget+"<section><h2>历史运行</h2>")
 (reports/"index.html").write_text(page("CI 测评档案",history),encoding="utf-8")
 current=reports/run;current.mkdir(parents=True,exist_ok=True)
-rows=[("Skill 静态验证",quality.get("status")),("数据集验证",dataset.get("status")),("OpenCode Docker",model.get("docker_smoke","not_verified")),("同模型 A/B",model.get("status")),("工程判断质量","not_graded")]
+rows=[("Skill 静态验证",quality.get("status")),("数据集验证",dataset.get("status")),("OpenCode Docker",model.get("docker_smoke","not_verified")),("同模型 A/B（异步，详见报告首页）",model.get("status")),("工程判断质量","not_graded")]
 stages="".join("<tr><td>"+esc(k)+"</td><td>"+esc(v)+"</td></tr>" for k,v in rows)
 tries="".join("<tr><td>"+esc(a.get("model"))+"</td><td>"+esc(a.get("baseline_exit"))+"</td><td>"+esc(a.get("greatsword_exit"))+"</td></tr>" for a in attempts)
 body="<section><p class='eyebrow'>RUN "+esc(run)+"</p><h1 style='font-size:clamp(35px,6vw,62px)'>CI Evidence</h1><p class='lead'>Commit <code>"+esc(sha)+"</code></p><div class='panel'><h3>Selected Model</h3><p><code>"+esc(model.get("selected_model") or "NONE — no successful A/B")+" </code></p></div></section>"
