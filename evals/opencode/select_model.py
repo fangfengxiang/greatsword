@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Try free OpenCode models in ranked order, requiring BOTH A/B runs to succeed."""
-import json, os, pathlib, subprocess, sys
+import json, os, pathlib, subprocess, sys, time
 root=pathlib.Path("/workspace")
 out=pathlib.Path("/reports")
 out.mkdir(parents=True,exist_ok=True)
@@ -35,17 +35,21 @@ candidates=[m for m in priority if m in available]
 candidates += sorted(m for m in available if m.startswith("opencode/") and m.endswith("-free") and m not in candidates)
 result={"status":"not_run","catalog_exit":catalog["exit"],"available_free_candidates":candidates,
         "ranking_basis":"editorial preference for coding, not a verified numerical benchmark",
-        "attempts":[],"selected_model":None}
+        "attempts":[],"selected_model":None,"budget_seconds":int(os.getenv("EVAL_BUDGET_SECONDS","1200")),"max_models":int(os.getenv("EVAL_MAX_MODELS","6"))}
 limit=os.getenv("EVAL_LIMIT","3")
-timeout=os.getenv("EVAL_TIMEOUT","180")
-for model in candidates:
+timeout=os.getenv("EVAL_TIMEOUT","90")
+deadline=time.monotonic()+int(os.getenv("EVAL_BUDGET_SECONDS","1200"))
+max_models=int(os.getenv("EVAL_MAX_MODELS","6"))
+for model in candidates[:max_models]:
+    if time.monotonic()>=deadline: break
     attempt={"model":model}
     for condition in ("baseline","greatsword"):
         cmd=["python3","evals/opencode/run.py","--model",model,"--condition",condition,
              "--limit",limit,"--timeout",timeout,"--output",str(out)]
-        r=run(cmd,int(timeout)*int(limit)+60)
+        remaining=max(1,int(deadline-time.monotonic()))
+        r=run(cmd,min(int(timeout)*int(limit)+60,remaining))
         attempt[condition]={"exit":r["exit"],"stderr":r["stderr"][-1500:]}
-        if r["exit"]!=0: break
+        if r["exit"]!=0 or time.monotonic()>=deadline: break
     result["attempts"].append(attempt)
     if attempt.get("baseline",{}).get("exit")==0 and attempt.get("greatsword",{}).get("exit")==0:
         result["selected_model"]=model
