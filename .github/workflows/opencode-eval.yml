@@ -59,7 +59,7 @@ jobs:
 
   model-eval:
     needs: docker-smoke
-    if: ${{ (inputs.model != '' && inputs.model != null) || vars.OPENCODE_EVAL_MODEL != '' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -67,18 +67,17 @@ jobs:
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - name: Run Docker A/B benchmark
+      - name: Discover free models and run first successful A/B
         shell: bash
         run: |
           mkdir -p build/opencode
-          docker compose -f evals/opencode/compose.yaml build
-          set +e
-          docker compose -f evals/opencode/compose.yaml run --rm baseline --model "$OPENCODE_MODEL" --condition baseline --limit "${{ inputs.limit || '3' }}" --output /reports
-          baseline=$?
-          docker compose -f evals/opencode/compose.yaml run --rm greatsword --model "$OPENCODE_MODEL" --condition greatsword --limit "${{ inputs.limit || '3' }}" --output /reports
-          candidate=$?
-          echo "baseline_exit=$baseline candidate_exit=$candidate"
-          test "$baseline" -eq 0 && test "$candidate" -eq 0
+          docker build -f evals/opencode/Dockerfile -t greatsword-opencode:ci .
+          docker run --rm \
+            -e OPENCODE_API_KEY \
+            -e EVAL_LIMIT="${{ inputs.limit || '3' }}" \
+            -v "$PWD/build/opencode:/reports" \
+            --entrypoint python3 greatsword-opencode:ci \
+            evals/opencode/select_model.py
       - name: Generate combined HTML and JSON report
         if: always()
         env:
