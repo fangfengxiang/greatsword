@@ -11,6 +11,8 @@
 4. Select the least intrusive observation points and ensure their semantics match the claim.
 5. Check that tests actually execute and can fail when the target property is violated.
 6. Record provenance, observations, assertion gates, limitations, and reproduction steps.
+7. Separate execution completion, test assertions, business correctness, and quality scores; a successful workflow or HTTP response does not establish the stronger claims.
+8. When a change spans artifacts or teams, identify which versioned contract is authoritative and verify that dependent outputs refer to the same version.
 
 **Failure modes:** a test name claiming more than its assertion; instrumentation changing behavior; Python assertions disabled by optimization; passing a report with incomplete coverage; a workaround that suppresses legitimate behavior.
 
