@@ -1,7 +1,7 @@
 {
   "status": "completed_ungraded",
-  "timestamp": "2026-11-18T17:23:04.099594+00:00",
-  "commit": "14d845a14e54dd28632b3a40761e836c2fbac3a8",
+  "timestamp": "2026-11-18T17:34:28.640418+00:00",
+  "commit": "3ed6ec60afc72735aa3c0343e29c74dd5d62a3cf",
   "docker_smoke": "passed",
   "model_evaluation": "completed_ungraded",
   "execution": {
@@ -9,7 +9,7 @@
     "outcome": "success",
     "timeout_seconds": 900
   },
-  "selected_model": "opencode/mimo-v2.6-flash-free",
+  "selected_model": "opencode/nemotron-3.5-super-vl-free",
   "attempted_models": [
     {
       "model": "opencode/deepseek-v4.1-flash-free",
@@ -24,18 +24,23 @@
     {
       "model": "opencode/mimo-v2.6-flash-free",
       "baseline_exit": 0,
+      "greatsword_exit": 1
+    },
+    {
+      "model": "opencode/nemotron-3.5-super-vl-free",
+      "baseline_exit": 0,
       "greatsword_exit": 0
     }
   ],
   "conditions": {
     "baseline": {
-      "model": "opencode/mimo-v2.6-flash-free",
+      "model": "opencode/nemotron-3.5-super-vl-free",
       "cases": 3,
       "cli_successes": 3,
       "behavior_score": "not_graded"
     },
     "greatsword": {
-      "model": "opencode/mimo-v2.6-flash-free",
+      "model": "opencode/nemotron-3.5-super-vl-free",
       "cases": 3,
       "cli_successes": 3,
       "behavior_score": "not_graded"

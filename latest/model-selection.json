@@ -38,12 +38,23 @@
         "stderr": ""
       },
       "greatsword": {
+        "exit": 1,
+        "stderr": ""
+      }
+    },
+    {
+      "model": "opencode/nemotron-3.5-super-vl-free",
+      "baseline": {
+        "exit": 0,
+        "stderr": ""
+      },
+      "greatsword": {
         "exit": 0,
         "stderr": ""
       }
     }
   ],
-  "selected_model": "opencode/mimo-v2.6-flash-free",
+  "selected_model": "opencode/nemotron-3.5-super-vl-free",
   "budget_seconds": 1200,
   "max_models": 6
 }
