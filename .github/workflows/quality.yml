@@ -150,6 +150,9 @@ jobs:
     if: ${{ always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     needs: [static-quality]
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -167,14 +170,6 @@ jobs:
               cp -rn /tmp/greatsword-previous/reports/. public/reports/
             fi
           fi
-      - name: Publish persistent history to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          publish_branch: gh-pages
-          keep_files: true
-          enable_jekyll: false
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
