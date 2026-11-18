@@ -5,6 +5,8 @@ description: Evidence-grounded engineering judgment for software architecture, s
 
 # Greatsword
 
+**重剑无锋，大巧不工。** — Great engineering favors sound boundaries, simple mechanisms, and evidence over ornamental complexity.
+
 Make the smallest sound engineering decision that satisfies the actual constraints. Prefer an existing host capability to an unnecessary new mechanism, but never remove a required correctness guarantee.
 
 ## Decision path
