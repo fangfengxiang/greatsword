@@ -1,0 +1,42 @@
+name: Greatsword Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-quality:
+    name: Static skill and package validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate skill and package boundary
+        run: python3 scripts/check_skill.py
+      - name: Create isolated installation archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p build
+          if [ -f skills/greatsword/SKILL.md ]; then
+            tar -czf build/greatsword-skill.tar.gz -C skills greatsword
+            tar -tzf build/greatsword-skill.tar.gz > build/package-manifest.txt
+          fi
+      - name: Publish quality evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: greatsword-quality-${{ github.run_id }}
+          path: |
+            build/quality-report.json
+            build/package-manifest.txt
+            build/greatsword-skill.tar.gz
+          if-no-files-found: warn
+          retention-days: 30
