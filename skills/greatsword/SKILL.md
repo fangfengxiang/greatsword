@@ -26,6 +26,7 @@ Use this as an internal decision guide, **not** a mandatory six-part response te
 - Concurrency, authority, caches, process lifetime, or recovery: [invariant-lifecycle](references/invariant-lifecycle.md).
 - Protocols, APIs, versions, or temporal data contracts: [contract-compatibility](references/contract-compatibility.md).
 - Risky fixes, migrations, regressions, or evidence claims: [controlled-change](references/controlled-change.md).
+- Selecting an open-source platform or deciding whether to build a mechanism: [technology-selection](references/technology-selection.md).
 
 ## Stop conditions
 
