@@ -1,0 +1,30 @@
+{
+  "status": "completed_ungraded",
+  "timestamp": "2026-11-18T16:33:24.309356+00:00",
+  "commit": "acb96976458980e24042283c1a3da66c975299f4",
+  "docker_smoke": "passed",
+  "model_evaluation": "completed_ungraded",
+  "selected_model": "opencode/deepseek-v4.1-flash-free",
+  "attempted_models": [
+    {
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "baseline_exit": 0,
+      "greatsword_exit": 0
+    }
+  ],
+  "conditions": {
+    "baseline": {
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "cases": 3,
+      "cli_successes": 3,
+      "behavior_score": "not_graded"
+    },
+    "greatsword": {
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "cases": 3,
+      "cli_successes": 3,
+      "behavior_score": "not_graded"
+    }
+  },
+  "note": "A successful Docker smoke test is not a model evaluation. CLI success is not engineering correctness."
+}

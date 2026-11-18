@@ -1,0 +1,32 @@
+{
+  "status": "completed_ungraded",
+  "catalog_exit": 0,
+  "available_free_candidates": [
+    "opencode/deepseek-v4.1-flash-free",
+    "opencode/mimo-v2.6-flash-free",
+    "opencode/nemotron-3.5-super-vl-free",
+    "opencode/nemotron-3.5-lightning-free",
+    "opencode/flint-40b-free",
+    "opencode/beam-free",
+    "opencode/longcat-2.5-free",
+    "opencode/hy4-flash-free",
+    "opencode/inkling-2-small-free",
+    "opencode/iceman-free",
+    "opencode/big-pickle"
+  ],
+  "ranking_basis": "editorial preference for coding, not a verified numerical benchmark",
+  "attempts": [
+    {
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "baseline": {
+        "exit": 0,
+        "stderr": ""
+      },
+      "greatsword": {
+        "exit": 0,
+        "stderr": ""
+      }
+    }
+  ],
+  "selected_model": "opencode/deepseek-v4.1-flash-free"
+}
