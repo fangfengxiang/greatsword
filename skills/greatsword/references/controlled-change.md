@@ -6,6 +6,7 @@
 
 1. Pin the original behavior, version, constraints, and failure mechanism.
 2. Classify what must change and what must remain stable.
+   For performance or routing changes, record workload shape (including key distribution), critical-path dependencies, fault domain, and the relevant runtime/database version before selecting an algorithm or optimization.
 3. Define a negative control (old failure) and a positive control (normal behavior).
 4. Select the least intrusive observation points and ensure their semantics match the claim.
 5. Check that tests actually execute and can fail when the target property is violated.
