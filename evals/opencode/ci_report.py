@@ -10,15 +10,18 @@ for condition in ("baseline","greatsword"):
     path=root/condition/"summary.json"
     if path.exists():
         summaries[condition]=json.loads(path.read_text())
+execution_path=root/"execution-status.json"
+execution=json.loads(execution_path.read_text()) if execution_path.exists() else {}
 selection_path=root/"model-selection.json"
 selection=json.loads(selection_path.read_text()) if selection_path.exists() else {}
 selected=selection.get("selected_model")
 has_both=bool(selected) and len(summaries)==2 and all(v.get("model")==selected and v.get("results") and all(x.get("exit_code")==0 for x in v["results"]) for v in summaries.values())
-status="completed_ungraded" if has_both else ("failed" if selection.get("attempts") else "not_run")
+status="completed_ungraded" if has_both else ("failed_or_timed_out" if execution.get("outcome")=="failure" else ("failed" if selection.get("attempts") else "not_run"))
 report={"status":status,"timestamp":datetime.now(timezone.utc).isoformat(),
         "commit":os.getenv("GITHUB_SHA","unknown"),
         "docker_smoke":"passed" if os.getenv("DOCKER_SMOKE_PASSED")=="true" else "not_verified",
         "model_evaluation":status,
+        "execution":execution,
         "selected_model":selected if has_both else None,
         "attempted_models":[{"model":a.get("model"),"baseline_exit":a.get("baseline",{}).get("exit"),"greatsword_exit":a.get("greatsword",{}).get("exit")} for a in selection.get("attempts",[])],
         "conditions":{k:{"model":v.get("model"),"cases":len(v.get("results",[])),
