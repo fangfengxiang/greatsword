@@ -1,0 +1,19 @@
+services:
+  baseline:
+    build:
+      context: ../..
+      dockerfile: evals/opencode/Dockerfile
+    environment:
+      OPENCODE_API_KEY: ${OPENCODE_API_KEY:-}
+    command: ["--model", "${OPENCODE_MODEL:?Set OPENCODE_MODEL}", "--condition", "baseline", "--limit", "3", "--output", "/reports"]
+    volumes:
+      - ../../build/opencode:/reports
+  greatsword:
+    build:
+      context: ../..
+      dockerfile: evals/opencode/Dockerfile
+    environment:
+      OPENCODE_API_KEY: ${OPENCODE_API_KEY:-}
+    command: ["--model", "${OPENCODE_MODEL:?Set OPENCODE_MODEL}", "--condition", "greatsword", "--limit", "3", "--output", "/reports"]
+    volumes:
+      - ../../build/opencode:/reports
