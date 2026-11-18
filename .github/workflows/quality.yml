@@ -73,6 +73,7 @@ jobs:
         run: exit 1
 
   model-eval:
+    # Independent: never blocks Pages deployment.
     name: 02 · Docker / same-model A-B
     if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
@@ -118,6 +119,23 @@ jobs:
           echo '## 02 · OpenCode A/B' >> "$GITHUB_STEP_SUMMARY"
           python3 -c 'import json,os;p=json.load(open("build/opencode/ci-report.json"));print("Selected model:",p.get("selected_model") or "NONE");print("Status:",p["status"]);print("Attempts:",len(p.get("attempted_models",[])))' | tee -a "$GITHUB_STEP_SUMMARY"
           echo 'CLI execution is not an engineering-quality score.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish A/B results at stable branch path
+        if: always() && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p build/ab-published/latest
+          cp build/opencode/ci-report.json build/ab-published/latest/ci-report.json 2>/dev/null || printf '{"status":"not_run","selected_model":null,"attempted_models":[]}' > build/ab-published/latest/ci-report.json
+          cp build/opencode/ci-report.html build/ab-published/latest/ci-report.html 2>/dev/null || true
+          cp build/opencode/model-selection.json build/ab-published/latest/model-selection.json 2>/dev/null || true
+          python3 -c 'import json,os;from pathlib import Path;p=Path("build/ab-published/latest/metadata.json");p.write_text(json.dumps({"run_id":os.getenv("GITHUB_RUN_ID"),"sha":os.getenv("GITHUB_SHA")}))'
+      - name: Commit stable A/B result
+        if: always() && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/ab-published
+          publish_branch: ab-results
+          keep_files: false
+          enable_jekyll: false
       - name: Upload complete model evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -130,7 +148,7 @@ jobs:
   publish-pages:
     name: 03 · Publish report archive
     if: ${{ always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
-    needs: [static-quality, model-eval]
+    needs: [static-quality]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -138,11 +156,6 @@ jobs:
         with:
           name: greatsword-quality-${{ github.run_id }}
           path: build/
-      - uses: actions/download-artifact@v4
-        with:
-          name: greatsword-model-${{ github.run_id }}
-          path: build/opencode/
-        continue-on-error: true
       - name: Generate landing and per-run reports
         run: python3 scripts/build_site.py
       - name: Restore earlier published run reports
