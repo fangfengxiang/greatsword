@@ -9,6 +9,8 @@
 3. Identify atomic operations and ordering requirements.
 4. Examine crash, restart, retry, reuse, and stale-reader paths.
 5. Verify at the boundary that can actually violate the invariant.
+6. For shared snapshots or counters, distinguish atomic visibility from lost-update prevention; test concurrent writers and crash/reconciliation paths when relevant.
+7. For idempotent writes, define whether a repeated key with a different request is a conflict; keep irreversible facts (such as tombstones) in the authoritative store, not only a cache.
 
 **Failure modes:** process-local uniqueness mistaken for distributed uniqueness; atomic publication mistaken for safe reader lifetime; invalidation signal without propagation and fallback; interface promises without provider guarantees.
 
