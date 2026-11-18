@@ -20,6 +20,8 @@ jobs:
           python-version: '3.12'
       - name: Validate skill and package boundary
         run: python3 scripts/check_skill.py
+      - name: Validate benchmark dataset
+        run: python3 scripts/check_dataset.py
       - name: Create isolated installation archive
         if: always()
         shell: bash
