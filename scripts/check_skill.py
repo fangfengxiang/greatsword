@@ -13,6 +13,7 @@ ALLOWED = {
     "references/invariant-lifecycle.md",
     "references/contract-compatibility.md",
     "references/controlled-change.md",
+    "references/technology-selection.md",
 }
 errors = []
 def check(ok, msg):
