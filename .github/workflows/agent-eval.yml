@@ -1,0 +1,58 @@
+name: Greatsword Agent Evaluation (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Inspect AI model identifier (e.g. openai/gpt-4o-mini)'
+        required: true
+        default: 'openai/gpt-4o-mini'
+      condition:
+        description: 'Which condition to run'
+        required: true
+        type: choice
+        options:
+          - baseline
+          - greatsword
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Inspect AI
+        run: python -m pip install -r evals/inspect/requirements.txt
+      - name: Check evaluation inputs
+        run: |
+          python scripts/check_skill.py
+          python scripts/check_dataset.py
+      - name: Require model credentials
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "::error::OPENAI_API_KEY secret not configured; no model evaluation was run"
+            exit 1
+          fi
+      - name: Run Inspect AI development evaluation
+        run: |
+          mkdir -p build/inspect
+          inspect eval evals/inspect/greatsword.py \
+            --model "${{ inputs.model }}" \
+            -T condition="${{ inputs.condition }}" \
+            --log-dir build/inspect
+      - name: Archive raw Inspect logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inspect-${{ inputs.condition }}-${{ github.run_id }}
+          path: build/inspect/
+          if-no-files-found: warn
+          retention-days: 30
