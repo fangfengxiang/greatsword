@@ -16,7 +16,17 @@ table{width:100%;border-collapse:collapse;display:block;overflow-x:auto}th,td{te
 code{font:13px ui-monospace,SFMono-Regular,monospace;color:#efcb95}pre{background:#0a1220;padding:20px;overflow:auto;border:1px solid var(--line);border-radius:12px}
 footer{border-top:1px solid var(--line);padding:35px 0;color:var(--muted)}
 @media(max-width:700px){.grid{grid-template-columns:1fr}.hero{padding-top:55px}nav{align-items:flex-start;flex-direction:column}}
-</style></head><body><div class='wrap'><nav><a class='logo' href='/greatsword/'>⚔ GREATSWORD</a><div class='links'><a href='/greatsword/'>首页</a><a href='/greatsword/reports/'>CI 测评报告</a><a href='https://github.com/fangfengxiang/greatsword'>GitHub</a></div></nav><section><h1 style='font-size:clamp(35px,6vw,60px)'>CI · 测评档案</h1><p class='lead'>每次提交保留独立报告。静态质量、运行环境与同模型 A/B 分阶段展示；未执行与未评分如实标记。</p></section><section><h2>历史运行</h2><div id='history' class='panel'>正在从 GitHub Actions 读取运行记录…</div><p class='muted'>报告按 run ID 永久路径发布。GitHub Pages 首次启用前，链接可能尚不可访问。</p></section>
+</style></head><body><div class='wrap'><nav><a class='logo' href='/greatsword/'>⚔ GREATSWORD</a><div class='links'><a href='/greatsword/'>首页</a><a href='/greatsword/reports/'>CI 测评报告</a><a href='https://github.com/fangfengxiang/greatsword'>GitHub</a></div></nav><section><h1 style='font-size:clamp(35px,6vw,60px)'>CI · 测评档案</h1><p class='lead'>每次提交保留独立报告。静态质量、运行环境与同模型 A/B 分阶段展示；未执行与未评分如实标记。</p></section><section><h2>最新模型 A/B（异步）</h2><div id='latest-ab' class='panel'><p>正在读取最新 A/B 结果…</p></div><p class='muted'>A/B 与静态站发布解耦；缺失、失败或未评分不会影响站点访问。</p></section>
+<script>
+(function(){
+ const el=document.getElementById('latest-ab');
+ const fallback='尚无可用 A/B 结果。静态质量报告仍可独立查看。';
+ fetch('https://raw.githubusercontent.com/fangfengxiang/greatsword/ab-results/latest/ci-report.json',{cache:'no-store'})
+ .then(r=>{if(!r.ok)throw Error('unavailable');return r.json()})
+ .then(d=>{if(!d || typeof d.status!=='string')throw Error('invalid');const p=document.createElement('p');p.textContent='状态：'+d.status+' · 模型：'+(d.selected_model||'未选择')+' · 尝试：'+(Array.isArray(d.attempted_models)?d.attempted_models.length:0);el.replaceChildren(p);})
+ .catch(()=>{el.textContent=fallback;});
+})();
+</script><section><h2>历史运行</h2><div id='history' class='panel'>正在从 GitHub Actions 读取运行记录…</div><p class='muted'>报告按 run ID 永久路径发布。GitHub Pages 首次启用前，链接可能尚不可访问。</p></section>
 <script>
 fetch('https://api.github.com/repos/fangfengxiang/greatsword/actions/workflows/quality.yml/runs?per_page=60')
 .then(r=>{if(!r.ok)throw Error('GitHub API '+r.status);return r.json()})
