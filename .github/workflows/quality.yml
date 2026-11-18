@@ -14,6 +14,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: greatsword-pages
@@ -143,9 +145,18 @@ jobs:
           publish_branch: gh-pages
           keep_files: true
           enable_jekyll: false
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
       - name: Published report links
         run: |
           echo '## 03 · Pages' >> "$GITHUB_STEP_SUMMARY"
           echo 'Landing: https://fangfengxiang.github.io/greatsword/' >> "$GITHUB_STEP_SUMMARY"
           echo 'This run: https://fangfengxiang.github.io/greatsword/reports/${{ github.run_id }}/' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Pages must be configured to serve the gh-pages branch.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Pages must be enabled with GitHub Actions as its build and deployment source.' >> "$GITHUB_STEP_SUMMARY"
