@@ -1,0 +1,40 @@
+{
+  "status": "completed_ungraded",
+  "timestamp": "2026-11-18T16:43:01.196727+00:00",
+  "commit": "57e8376a06c6c6f0ab4a9d3174a11ccea2682750",
+  "docker_smoke": "passed",
+  "model_evaluation": "completed_ungraded",
+  "selected_model": "opencode/nemotron-3.5-super-vl-free",
+  "attempted_models": [
+    {
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "baseline_exit": 1,
+      "greatsword_exit": null
+    },
+    {
+      "model": "opencode/mimo-v2.6-flash-free",
+      "baseline_exit": 1,
+      "greatsword_exit": null
+    },
+    {
+      "model": "opencode/nemotron-3.5-super-vl-free",
+      "baseline_exit": 0,
+      "greatsword_exit": 0
+    }
+  ],
+  "conditions": {
+    "baseline": {
+      "model": "opencode/nemotron-3.5-super-vl-free",
+      "cases": 3,
+      "cli_successes": 3,
+      "behavior_score": "not_graded"
+    },
+    "greatsword": {
+      "model": "opencode/nemotron-3.5-super-vl-free",
+      "cases": 3,
+      "cli_successes": 3,
+      "behavior_score": "not_graded"
+    }
+  },
+  "note": "A successful Docker smoke test is not a model evaluation. CLI success is not engineering correctness."
+}
