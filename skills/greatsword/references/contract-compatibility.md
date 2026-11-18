@@ -9,6 +9,8 @@
 3. Identify both positive behavior and rejected/invalid cases.
 4. Pin the actual versions and examine the change surface; do not assume mechanical backports.
 5. Choose tests that exercise consumers, not only isolated implementations.
+6. For multi-source or temporal data, specify precedence, fallback, validity interval, and conflict behavior; never let the newest value silently overwrite historical meaning.
+7. For protocol adapters, verify framing, serialization, errors, and actual peer interoperability; source-level API resemblance is not wire compatibility.
 
 **Failure modes:** protocol translation that loses error meaning; version-specific memory layout assumptions; temporal data fallback that changes meaning at a boundary.
 
