@@ -1,14 +1,20 @@
-name: OpenCode A-B Evaluation
+name: OpenCode Docker Evaluation
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'evals/opencode/**'
+      - '.github/workflows/opencode-eval.yml'
   workflow_dispatch:
     inputs:
       model:
-        description: 'Exact available OpenCode model ID; select from your connected catalog'
-        required: true
+        description: 'Model ID (leave blank for Docker smoke test only)'
+        required: false
+        default: ''
         type: string
       limit:
-        description: 'Development scenarios per condition (1-12)'
+        description: 'Cases per condition'
         required: true
         default: '3'
         type: choice
@@ -18,44 +24,50 @@ permissions:
   contents: read
 
 jobs:
-  opencode-ab:
+  docker-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate benchmark and Skill
+        run: |
+          python3 scripts/check_skill.py
+          python3 scripts/check_dataset.py
+      - name: Build OpenCode evaluation container
+        run: docker build -f evals/opencode/Dockerfile -t greatsword-opencode:ci .
+      - name: Verify installed OpenCode inside Docker
+        run: |
+          docker run --rm --entrypoint opencode greatsword-opencode:ci --version
+          docker run --rm --entrypoint opencode greatsword-opencode:ci run --help
+      - name: Verify Python runner CLI inside Docker
+        run: docker run --rm greatsword-opencode:ci --help
+  model-eval:
+    needs: docker-smoke
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.model != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
+      OPENCODE_MODEL: ${{ inputs.model }}
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install OpenCode CLI v2
-        run: npm install -g @opencode/cli
-      - name: Check CLI
-        run: |
-          opencode --version
-          opencode run --help
-      - name: Validate benchmark and skill
-        run: |
-          python scripts/check_skill.py
-          python scripts/check_dataset.py
-      - name: Run both conditions with identical model
+      - name: Run Docker A/B benchmark
         shell: bash
         run: |
+          mkdir -p build/opencode
+          docker compose -f evals/opencode/compose.yaml build
           set +e
-          python evals/opencode/run.py --model "${{ inputs.model }}" --condition baseline --limit "${{ inputs.limit }}" --output build/opencode
+          docker compose -f evals/opencode/compose.yaml run --rm baseline --model "$OPENCODE_MODEL" --condition baseline --limit "${{ inputs.limit }}" --output /reports
           baseline=$?
-          python evals/opencode/run.py --model "${{ inputs.model }}" --condition greatsword --limit "${{ inputs.limit }}" --output build/opencode
+          docker compose -f evals/opencode/compose.yaml run --rm greatsword --model "$OPENCODE_MODEL" --condition greatsword --limit "${{ inputs.limit }}" --output /reports
           candidate=$?
           echo "baseline_exit=$baseline candidate_exit=$candidate"
-          if [ "$baseline" -ne 0 ] || [ "$candidate" -ne 0 ]; then exit 1; fi
-      - name: Archive evidence and HTML reports
+          test "$baseline" -eq 0 && test "$candidate" -eq 0
+      - name: Archive HTML and JSON reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: opencode-ab-${{ github.run_id }}
+          name: opencode-docker-${{ github.run_id }}
           path: build/opencode/
           if-no-files-found: warn
           retention-days: 30
