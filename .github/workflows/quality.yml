@@ -137,6 +137,15 @@ jobs:
         continue-on-error: true
       - name: Generate landing and per-run reports
         run: python3 scripts/build_site.py
+      - name: Restore earlier published run reports
+        run: |
+          if git fetch origin gh-pages:refs/remotes/origin/gh-pages 2>/dev/null; then
+            mkdir -p /tmp/greatsword-previous
+            git archive origin/gh-pages reports | tar -x -C /tmp/greatsword-previous
+            if [ -d /tmp/greatsword-previous/reports ]; then
+              cp -rn /tmp/greatsword-previous/reports/. public/reports/
+            fi
+          fi
       - name: Publish persistent history to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
