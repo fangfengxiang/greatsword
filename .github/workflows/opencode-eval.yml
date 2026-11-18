@@ -1,11 +1,6 @@
 name: OpenCode Docker Evaluation
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'evals/opencode/**'
-      - '.github/workflows/opencode-eval.yml'
   workflow_dispatch:
     inputs:
       model:
