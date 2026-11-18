@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "gate": "static",
+  "status": "fail",
+  "behavior_evaluation": "not_run",
+  "package_root": "skills/greatsword",
+  "files": [
+    "SKILL.md",
+    "references/contract-compatibility.md",
+    "references/controlled-change.md",
+    "references/invariant-lifecycle.md",
+    "references/responsibility-boundary.md"
+  ],
+  "errors": [
+    "Broken local reference: references/technology-selection.md"
+  ]
+}
