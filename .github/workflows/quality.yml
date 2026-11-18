@@ -76,7 +76,7 @@ jobs:
     name: 02 · Docker / same-model A-B
     if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - name: Build evaluation image
@@ -94,12 +94,19 @@ jobs:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         run: |
           mkdir -p build/opencode
-          docker run --rm \
+          timeout --signal=TERM --kill-after=20s 900s docker run --rm \
             -e OPENCODE_API_KEY \
             -e EVAL_LIMIT="${{ inputs.limit || '3' }}" \
             -v "$PWD/build/opencode:/reports" \
             --entrypoint python3 greatsword-opencode:ci \
             evals/opencode/select_model.py
+      - name: Record A/B timeout or failure
+        if: always()
+        env:
+          AB_OUTCOME: ${{ steps.ab.outcome }}
+        run: |
+          mkdir -p build/opencode
+          python3 -c 'import json,os,pathlib;p=pathlib.Path("build/opencode/execution-status.json");p.write_text(json.dumps({"stage":"model-eval","outcome":os.getenv("AB_OUTCOME","unknown"),"timeout_seconds":900},indent=2))'
       - name: Generate truthful A/B report
         if: always()
         env:
@@ -117,6 +124,7 @@ jobs:
         with:
           name: greatsword-model-${{ github.run_id }}
           path: build/opencode/
+          if-no-files-found: warn
           retention-days: 90
 
   publish-pages:
@@ -141,8 +149,8 @@ jobs:
         run: |
           if git fetch origin gh-pages:refs/remotes/origin/gh-pages 2>/dev/null; then
             mkdir -p /tmp/greatsword-previous
-            git archive origin/gh-pages reports | tar -x -C /tmp/greatsword-previous
-            if [ -d /tmp/greatsword-previous/reports ]; then
+            if git ls-tree -d --name-only origin/gh-pages reports | grep -qx reports; then
+              git archive origin/gh-pages reports | tar -x -C /tmp/greatsword-previous
               cp -rn /tmp/greatsword-previous/reports/. public/reports/
             fi
           fi
