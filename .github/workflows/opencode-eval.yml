@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        description: 'Model ID (leave blank for Docker smoke test only)'
+        description: 'Model ID; blank uses OPENCODE_EVAL_MODEL repository variable'
         required: false
         default: ''
         type: string
@@ -41,13 +41,29 @@ jobs:
           docker run --rm --entrypoint opencode greatsword-opencode:ci run --help
       - name: Verify Python runner CLI inside Docker
         run: docker run --rm greatsword-opencode:ci --help
+      - name: Produce smoke-only report
+        if: always()
+        env:
+          DOCKER_SMOKE_PASSED: ${{ job.status == 'success' }}
+        run: python3 evals/opencode/ci_report.py
+      - name: Upload smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-smoke-${{ github.run_id }}
+          path: |
+            build/opencode/ci-report.json
+            build/opencode/ci-report.html
+          if-no-files-found: warn
+          retention-days: 30
+
   model-eval:
     needs: docker-smoke
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.model != '' }}
+    if: ${{ (inputs.model != '' && inputs.model != null) || vars.OPENCODE_EVAL_MODEL != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      OPENCODE_MODEL: ${{ inputs.model }}
+      OPENCODE_MODEL: ${{ inputs.model || vars.OPENCODE_EVAL_MODEL }}
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     steps:
       - uses: actions/checkout@v4
@@ -57,17 +73,30 @@ jobs:
           mkdir -p build/opencode
           docker compose -f evals/opencode/compose.yaml build
           set +e
-          docker compose -f evals/opencode/compose.yaml run --rm baseline --model "$OPENCODE_MODEL" --condition baseline --limit "${{ inputs.limit }}" --output /reports
+          docker compose -f evals/opencode/compose.yaml run --rm baseline --model "$OPENCODE_MODEL" --condition baseline --limit "${{ inputs.limit || '3' }}" --output /reports
           baseline=$?
-          docker compose -f evals/opencode/compose.yaml run --rm greatsword --model "$OPENCODE_MODEL" --condition greatsword --limit "${{ inputs.limit }}" --output /reports
+          docker compose -f evals/opencode/compose.yaml run --rm greatsword --model "$OPENCODE_MODEL" --condition greatsword --limit "${{ inputs.limit || '3' }}" --output /reports
           candidate=$?
           echo "baseline_exit=$baseline candidate_exit=$candidate"
           test "$baseline" -eq 0 && test "$candidate" -eq 0
+      - name: Generate combined HTML and JSON report
+        if: always()
+        env:
+          DOCKER_SMOKE_PASSED: 'true'
+        run: python3 evals/opencode/ci_report.py
+      - name: Add report to job summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## OpenCode A/B evaluation" >> "$GITHUB_STEP_SUMMARY"
+          echo "Model: \`$OPENCODE_MODEL\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download the opencode-model artifact for the standalone HTML and JSON report." >> "$GITHUB_STEP_SUMMARY"
+          cat build/opencode/ci-report.json >> "$GITHUB_STEP_SUMMARY"
       - name: Archive HTML and JSON reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: opencode-docker-${{ github.run_id }}
+          name: opencode-model-${{ github.run_id }}
           path: build/opencode/
           if-no-files-found: warn
           retention-days: 30
