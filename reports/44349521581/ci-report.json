@@ -1,0 +1,55 @@
+{
+  "status": "completed_ungraded",
+  "timestamp": "2026-11-18T16:46:43.430732+00:00",
+  "commit": "99f9755e8f993a4c78beec7b09b937531c390af7",
+  "docker_smoke": "passed",
+  "model_evaluation": "completed_ungraded",
+  "execution": {
+    "stage": "model-eval",
+    "outcome": "success",
+    "timeout_seconds": 900
+  },
+  "selected_model": "opencode/nemotron-3.5-lightning-free",
+  "attempted_models": [
+    {
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "baseline_exit": 1,
+      "greatsword_exit": null
+    },
+    {
+      "model": "opencode/glm-5.3-flash-free",
+      "baseline_exit": 1,
+      "greatsword_exit": null
+    },
+    {
+      "model": "opencode/mimo-v2.6-flash-free",
+      "baseline_exit": 1,
+      "greatsword_exit": null
+    },
+    {
+      "model": "opencode/nemotron-3.5-super-vl-free",
+      "baseline_exit": 1,
+      "greatsword_exit": null
+    },
+    {
+      "model": "opencode/nemotron-3.5-lightning-free",
+      "baseline_exit": 0,
+      "greatsword_exit": 0
+    }
+  ],
+  "conditions": {
+    "baseline": {
+      "model": "opencode/nemotron-3.5-lightning-free",
+      "cases": 3,
+      "cli_successes": 3,
+      "behavior_score": "not_graded"
+    },
+    "greatsword": {
+      "model": "opencode/nemotron-3.5-lightning-free",
+      "cases": 3,
+      "cli_successes": 3,
+      "behavior_score": "not_graded"
+    }
+  },
+  "note": "A successful Docker smoke test is not a model evaluation. CLI success is not engineering correctness."
+}
